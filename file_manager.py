@@ -1,21 +1,21 @@
+from sys import argv
 from os import scandir, rename
 from os.path import splitext, exists, join
+from sys import argv
 from shutil import move
 from time import sleep
-
 import logging
-
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 
-src_dir = ''
-dest_dir_music = ''
-dest_dir_video = ''
-dest_dir_image = ''
-dest_dir_documents = ''
-dest_dir_compressed = ''
-dest_dir_program = ''
+src_dir = argv[1]
+dest_dir_music = argv[2]
+dest_dir_video = argv[3]
+dest_dir_image = argv[4]
+dest_dir_documents = argv[5]
+dest_dir_compressed = argv[6]
+dest_dir_program = argv[7]
 
 # supported image types
 image_extensions = [".jpg", ".jpeg", ".jpe", ".jif", ".jfif", ".jfi", ".png", ".gif", ".webp", ".tiff", ".tif", ".psd", ".raw", ".arw", ".cr2", ".nrw",
@@ -111,6 +111,7 @@ if __name__ == "__main__":
     observer = Observer()
     observer.schedule(event_handler, path, recursive=True)
     observer.start()
+    print("Watching for changes in the source directory...")
     try:
         while True:
             sleep(10)
