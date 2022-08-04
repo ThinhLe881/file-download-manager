@@ -1,1 +1,1 @@
-# File Download Manger - Thinh Le
+# File Download Manager - Thinh Le
