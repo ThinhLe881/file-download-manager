@@ -1,37 +1,11 @@
-from sys import argv
+import argparse
 from os import scandir, rename
 from os.path import splitext, exists, join
-from sys import argv
 from shutil import move
 from time import sleep
 import logging
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-
-
-src_dir = argv[1]
-dest_dir_music = argv[2]
-dest_dir_video = argv[3]
-dest_dir_image = argv[4]
-dest_dir_documents = argv[5]
-dest_dir_compressed = argv[6]
-dest_dir_program = argv[7]
-
-# supported image types
-image_extensions = [".jpg", ".jpeg", ".jpe", ".jif", ".jfif", ".jfi", ".png", ".gif", ".webp", ".tiff", ".tif", ".psd", ".raw", ".arw", ".cr2", ".nrw",
-                    ".k25", ".bmp", ".dib", ".heif", ".heic", ".ind", ".indd", ".indt", ".jp2", ".j2k", ".jpf", ".jpf", ".jpx", ".jpm", ".mj2", ".svg", ".svgz", ".ai", ".eps", ".ico"]
-# supported Video types
-video_extensions = [".webm", ".mpg", ".mp2", ".mpeg", ".mpe", ".mpv", ".ogg",
-                    ".mp4", ".mp4v", ".m4v", ".avi", ".wmv", ".mov", ".qt", ".flv", ".swf", ".avchd"]
-# supported Audio types
-audio_extensions = [".m4a", ".flac", "mp3", ".wav", ".wma", ".aac"]
-
-# supported Document types
-document_extensions = [".doc", ".docx", ".odt",
-                       ".pdf", ".xls", ".xlsx", ".ppt", ".pptx"]
-# supported Compressed types
-compressed_extensions = [".rar", ".arj", ".tar.gz", ".tgz", ".gz", ".iso", ".7z", ".zip", ".zipx", ".z"]
-
 
 def make_unique(dest, name):
     filename, extension = splitext(name)
@@ -41,7 +15,6 @@ def make_unique(dest, name):
         name = f"{filename}({str(counter)}){extension}"
         counter += 1
     return name
-
 
 def move_file(dest, entry, name):
     if exists(f"{dest}/{name}"):
@@ -53,12 +26,38 @@ def move_file(dest, entry, name):
 
 
 class MoverHandler(FileSystemEventHandler):
+    # supported image types
+    image_extensions = [".jpg", ".jpeg", ".jpe", ".jif", ".jfif", ".jfi", ".png", ".gif", ".webp", ".tiff", 
+                        ".tif", ".psd", ".raw", ".arw", ".cr2", ".nrw", ".k25", ".bmp", ".dib", ".heif", 
+                        ".heic", ".ind", ".indd", ".indt", ".jp2", ".j2k", ".jpf", ".jpf", ".jpx", ".jpm", ".mj2", 
+                        ".svg", ".svgz", ".ai", ".eps", ".ico"]
+    # supported Video types
+    video_extensions = [".webm", ".mpg", ".mp2", ".mpeg", ".mpe", ".mpv", ".ogg",
+                        ".mp4", ".mp4v", ".m4v", ".avi", ".wmv", ".mov", ".qt", ".flv", ".swf", ".avchd"]
+    # supported Audio types
+    audio_extensions = [".m4a", ".flac", "mp3", ".wav", ".wma", ".aac"]
+    # supported Document types
+    document_extensions = [".doc", ".docx", ".odt", ".pdf", ".xls", ".xlsx", ".ppt", ".pptx"]
+    # supported Compressed types
+    compressed_extensions = [".rar", ".arj", ".tar.gz", ".tgz", ".gz", ".iso", ".7z", ".zip", ".zipx", ".z"]
+
+    def __init__(self, src_dir, dest_dir_music, dest_dir_video, dest_dir_image, 
+                    dest_dir_document, dest_dir_compressed, dest_dir_program):
+        self.src_dir = src_dir
+        self.dest_dir_music = dest_dir_music
+        self.dest_dir_video = dest_dir_video
+        self.dest_dir_image = dest_dir_image
+        self.dest_dir_document = dest_dir_document
+        self.dest_dir_compressed = dest_dir_compressed
+        self.dest_dir_program = dest_dir_program
+
     # this function is called when there is a change in the source directory
     # .upper is for not missing out on files with uppercase extensions
     def on_modified(self, event):
-        with scandir(src_dir) as entries:
+        with scandir(self.src_dir) as entries:
             for entry in entries:
                 name = entry.name
+                print(name)
                 self.check_audio_files(entry, name)
                 self.check_video_files(entry, name)
                 self.check_image_files(entry, name)
@@ -67,49 +66,67 @@ class MoverHandler(FileSystemEventHandler):
                 self.check_program_files(entry, name)
 
     def check_audio_files(self, entry, name):  # checks all Audio files
-        for audio_extension in audio_extensions:
-            if name.endswith(audio_extension) or name.endswith(audio_extension.upper()): 
-                move_file(dest_dir_music, entry, name)
+        for audio_extension in self.audio_extensions:
+            if name.endswith(audio_extension) or name.endswith(audio_extension.upper()):
+                move_file(self.dest_dir_music, entry, name)
                 logging.info(f"Moved audio file: {name}")
 
     def check_video_files(self, entry, name):  # checks all Video files
-        for video_extension in video_extensions:
+        for video_extension in self.video_extensions:
             if name.endswith(video_extension) or name.endswith(video_extension.upper()):
-                move_file(dest_dir_video, entry, name)
+                move_file(self.dest_dir_video, entry, name)
                 logging.info(f"Moved video file: {name}")
 
     def check_image_files(self, entry, name):  # checks all Image files
-        for image_extension in image_extensions:
+        for image_extension in self.image_extensions:
             if name.endswith(image_extension) or name.endswith(image_extension.upper()):
-                move_file(dest_dir_image, entry, name)
+                move_file(self.dest_dir_image, entry, name)
                 logging.info(f"Moved image file: {name}")
 
     def check_document_files(self, entry, name):  # checks all Document files
-        for documents_extension in document_extensions:
-            if name.endswith(documents_extension) or name.endswith(documents_extension.upper()):
-                move_file(dest_dir_documents, entry, name)
+        for document_extension in self.document_extensions:
+            if name.endswith(document_extension) or name.endswith(document_extension.upper()):
+                move_file(self.dest_dir_document, entry, name)
                 logging.info(f"Moved document file: {name}")
     
     def check_compressed_files(self, entry, name):  # checks all Compressed files
-        for compressed_extension in compressed_extensions:
+        for compressed_extension in self.compressed_extensions:
             if name.endswith(compressed_extension) or name.endswith(compressed_extension.upper()):
-                move_file(dest_dir_compressed, entry, name)
+                move_file(self.dest_dir_compressed, entry, name)
                 logging.info(f"Moved compressed file: {name}")
 
     def check_program_files(self, entry, name):  # checks all Program files
         if name.endswith(".exe") or name.endswith(".EXE"):
-            move_file(dest_dir_program, entry, name)
+            move_file(self.dest_dir_program, entry, name)
             logging.info(f"Moved program file: {name}")
 
 
-if __name__ == "__main__":
+def main():
     logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s - %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
-    path = src_dir
-    event_handler = MoverHandler()
+
+    parser = argparse.ArgumentParser(description='File Manager')
+    parser.add_argument('src_dir', metavar='src_path', type=str, help='The directory that need to manage')
+    parser.add_argument('dest_dir_music', metavar='dest_dir_music', type=str, help='The directory for music/audio files')
+    parser.add_argument('dest_dir_video', metavar='dest_dir_video', type=str, help='The directory for video files')
+    parser.add_argument('dest_dir_image', metavar='dest_dir_image', type=str, help='The directory for image files')
+    parser.add_argument('dest_dir_document', metavar='dest_dir_documents', type=str, help='The directory for document files')
+    parser.add_argument('dest_dir_compressed', metavar='dest_dir_compressed', type=str, help='The directory for compressed files')
+    parser.add_argument('dest_dir_program', metavar='dest_dir_program', type=str, help='The directory for executable file')
+
+    src_dir = parser.src_dir
+    dest_dir_music = parser.dest_dir_music
+    dest_dir_video = parser.dest_dir_video
+    dest_dir_image = parser.dest_dir_image
+    dest_dir_document = parser.dest_dir_document
+    dest_dir_compressed = parser.dest_dir_compressed
+    dest_dir_program = parser.dest_dir_program
+
+    event_handler = MoverHandler(src_dir, dest_dir_music, dest_dir_video, dest_dir_image, 
+                                    dest_dir_document, dest_dir_compressed, dest_dir_program)
     observer = Observer()
-    observer.schedule(event_handler, path, recursive=True)
+    observer.schedule(event_handler, src_dir, recursive=True)
     observer.start()
     print("Watching for changes in the source directory...")
     try:
@@ -118,3 +135,6 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         observer.stop()
     observer.join()
+
+if __name__ == "__main__":
+    main()
