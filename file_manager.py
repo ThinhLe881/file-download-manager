@@ -114,14 +114,15 @@ def main():
     parser.add_argument('dest_dir_document', metavar='dest_dir_documents', type=str, help='The directory for document files')
     parser.add_argument('dest_dir_compressed', metavar='dest_dir_compressed', type=str, help='The directory for compressed files')
     parser.add_argument('dest_dir_program', metavar='dest_dir_program', type=str, help='The directory for executable file')
+    args = parser.parse_args()
 
-    src_dir = parser.src_dir
-    dest_dir_music = parser.dest_dir_music
-    dest_dir_video = parser.dest_dir_video
-    dest_dir_image = parser.dest_dir_image
-    dest_dir_document = parser.dest_dir_document
-    dest_dir_compressed = parser.dest_dir_compressed
-    dest_dir_program = parser.dest_dir_program
+    src_dir = args.src_dir
+    dest_dir_music = args.dest_dir_music
+    dest_dir_video = args.dest_dir_video
+    dest_dir_image = args.dest_dir_image
+    dest_dir_document = args.dest_dir_document
+    dest_dir_compressed = args.dest_dir_compressed
+    dest_dir_program = args.dest_dir_program
 
     event_handler = MoverHandler(src_dir, dest_dir_music, dest_dir_video, dest_dir_image, 
                                     dest_dir_document, dest_dir_compressed, dest_dir_program)
